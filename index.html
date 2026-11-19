@@ -3,79 +3,362 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CG Practice Simulator</title>
+<title>CG Operator Training</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="sim.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Sanctus brand: deep teal + mint on cream; teal sidebar, reading column on the right */
+  --teal:#03393B; --bar:#154547; --mint:#DEEBE4; --mint2:#EEF4F0; --cream:#FBFBF7; --sage:#8EB2A8;
+  --ink:#1d2b2b; --muted:#5a6c6a; --line:#d4e0da; --warn-bg:#fbf3e8; --warn:#8a5512; --good:#2f7d5b;
+  --display:"Newsreader","Canela",Georgia,serif; --body:"Montserrat","Gotham",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+.app{display:grid;grid-template-columns:300px 1fr;min-height:100%}
+
+/* sidebar */
+.side{background:var(--teal);color:var(--mint);position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 22px;display:flex;flex-direction:column;gap:22px}
+.side .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--mint)}
+.side .brand img{width:34px}
+.side .brand b{font-family:var(--display);font-weight:400;font-size:19px;color:#fff;line-height:1.1;display:block}
+.side .brand small{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--sage)}
+.prog{background:rgba(255,255,255,.06);border-radius:10px;padding:14px 16px}
+.prog .row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage)}
+.prog .row b{font-family:var(--display);font-size:26px;letter-spacing:0;color:#fff;font-weight:400;font-variant-numeric:tabular-nums}
+.meter{height:6px;background:rgba(255,255,255,.12);border-radius:3px;margin-top:10px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--sage);border-radius:3px;transition:width .3s}
+.save{font-size:11px;color:var(--sage);margin-top:8px}
+nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+nav a{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--mint);font-size:13.5px}
+nav a:hover{background:rgba(255,255,255,.06)}
+nav a[aria-current="page"]{background:var(--mint);color:var(--teal)}
+nav .n{font-family:var(--display);font-size:16px;color:var(--sage)}
+nav a[aria-current="page"] .n{color:var(--bar)}
+nav .st{font-size:11px;font-variant-numeric:tabular-nums;color:var(--sage)}
+nav a[aria-current="page"] .st{color:var(--bar)}
+nav .st.done{width:20px;height:20px;border-radius:50%;background:var(--sage);color:var(--teal);display:grid;place-items:center;font-size:12px;font-weight:600}
+.simlink{display:block;text-decoration:none;color:var(--teal);background:var(--mint);border-radius:10px;padding:12px 14px;font-weight:600;font-size:13.5px}
+.simlink small{display:block;font-weight:400;font-size:11.5px;color:var(--bar);margin-top:2px}
+.simlink:hover{background:#fff}
+.simbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--teal);color:#fff}
+.simbox p{margin:0;flex:1;min-width:220px;font-size:14px;color:#e6efeb}
+.simbox b{color:#fff}
+.simbox a{background:var(--mint);color:var(--teal);text-decoration:none;font-weight:600;font-size:13px;border-radius:999px;padding:9px 16px;white-space:nowrap}
+.simbox a:hover{background:#fff}
+.hero .cta.ghost{background:transparent;color:var(--mint);border:1px solid var(--mint);margin-left:10px}
+.hero .cta.ghost:hover{background:rgba(255,255,255,.1)}
+@media (max-width:900px){.side.open .simlink{display:block}.side .simlink{display:none;width:100%}}
+.side .foot{margin-top:auto;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--sage)}
+.menu{display:none}
+
+/* main */
+main{min-width:0}
+.wrap{max-width:820px;margin:0 auto;padding:44px 40px 80px}
+.hero{background:var(--teal) url(img/gradient.jpg) center/cover;color:#fff;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(3,57,59,.3),rgba(3,40,40,.85))}
+.hero .in{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:64px 40px 56px}
+.hero img{width:96px;margin-bottom:40px}
+.kicker{font-weight:500;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--mint)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(40px,6vw,64px);line-height:1;margin:14px 0 0;text-wrap:balance}
+.hero h1 em{display:block;font-weight:300;color:var(--mint);font-size:.78em}
+.hero p{font-weight:300;font-size:17px;max-width:52ch;margin:22px 0 0;color:#e6efeb}
+.cta{display:inline-flex;align-items:center;gap:10px;margin-top:28px;background:var(--mint);color:var(--teal);border:0;border-radius:999px;padding:13px 24px;font-weight:600;font-size:14px;text-decoration:none;cursor:pointer}
+.cta:hover{background:#fff}
+.welcome h2{font-family:var(--display);font-weight:400;font-size:32px;color:var(--teal);margin:0 0 12px}
+.welcome h2 em{font-weight:300}
+.welcome p{max-width:65ch}
+.sig{font-family:var(--display);font-style:italic;font-size:24px;color:var(--teal);margin-top:18px}
+.sigt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:36px}
+.card{display:flex;flex-direction:column;gap:6px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#fff;text-decoration:none;color:var(--ink)}
+.card:hover{border-color:var(--sage)}
+.card .n{font-family:var(--display);font-size:22px;color:var(--sage)}
+.card b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--teal);line-height:1.2}
+.card .pill{align-self:flex-start;font-size:11px;font-weight:500;border-radius:999px;padding:2px 10px;background:var(--mint2);color:var(--muted);font-variant-numeric:tabular-nums}
+.card .pill.done{background:var(--good);color:#fff}
+.card .pill.go{background:var(--mint);color:var(--teal)}
+
+/* lesson content */
+.opener{background:var(--teal);color:#fff;border-radius:12px;padding:34px 36px;position:relative;overflow:hidden;margin-bottom:28px}
+.opener::after{content:"";position:absolute;right:-30px;top:-20px;width:220px;height:220px;background:url(img/mark_cream.png) center/contain no-repeat;opacity:.07}
+.eyebrow{font-weight:500;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--sage)}
+.opener h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,4vw,40px);line-height:1.05;margin:8px 0 12px;text-wrap:balance}
+.opener p{font-weight:300;font-size:16px;margin:0;max-width:58ch;color:#e6efeb}
+.opener .vid{margin-top:16px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mint)}
+h3{font-family:var(--display);font-weight:500;font-size:23px;color:var(--teal);margin:34px 0 8px;text-wrap:balance}
+p{margin:0 0 12px}
+b,strong{font-weight:600;color:var(--teal)}
+ol.steps{list-style:none;counter-reset:s;margin:8px 0 16px;padding:0;display:flex;flex-direction:column;gap:8px}
+ol.steps>li{counter-increment:s;position:relative;padding-left:40px}
+ol.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:600;font-size:12px;display:grid;place-items:center}
+ol.steps ul{margin:6px 0 0;padding-left:18px}
+ul.dots{margin:6px 0 14px;padding-left:20px}
+ul.dots li{margin-bottom:6px}
+ul.dots li::marker{color:var(--sage)}
+figure{margin:18px 0 26px}
+.zoom{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+figure img{display:block;max-width:100%;width:100%;border-radius:8px;box-shadow:0 0 0 1px var(--line),0 6px 18px rgba(3,57,59,.08)}
+figcaption{font-size:13px;color:var(--muted);margin-top:9px;display:flex;gap:10px}
+figcaption .fn{font-weight:600;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;font-size:11.5px;padding-top:1px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pair figure{margin:14px 0 20px}
+.callout{background:var(--mint);border-left:3px solid var(--teal);padding:14px 18px;margin:18px 0;border-radius:0 8px 8px 0}
+.callout .lbl{font-weight:600;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
+.callout.warn{background:var(--warn-bg);border-color:#b5762a}
+.callout.warn .lbl{color:var(--warn)}
+.callout p:last-child{margin:0}
+.tw{overflow-x:auto;margin:12px 0 20px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:var(--teal);color:#fff;font-weight:500;text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:var(--mint2)}
+td.num{font-family:var(--display);font-size:20px;color:var(--teal);width:44px;text-align:center}
+
+/* interactive checklists */
+.practice{border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin:36px 0 0;background:#fff}
+.practice .lbl,.cl-head{font-weight:600;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.practice .lbl::before{content:"";width:18px;height:18px;background:url(img/mark_teal.png) center/contain no-repeat}
+.practice .lbl .count{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);letter-spacing:.1em}
+ul.check{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:4px}
+ul.check li{padding:0}
+.ck{display:flex;gap:12px;align-items:flex-start;padding:9px 10px;border-radius:8px;cursor:pointer}
+.ck:hover{background:var(--mint2)}
+.ck input{appearance:none;flex:none;width:22px;height:22px;margin:1px 0 0;border:1.5px solid var(--teal);border-radius:5px;background:#fff;cursor:pointer;display:grid;place-items:center}
+.ck input:checked{background:var(--teal)}
+.ck input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.ck input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--sage)}
+.notes-lbl{display:block;margin-top:14px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.notes{display:block;width:100%;margin-top:8px;font:inherit;font-size:14px;letter-spacing:0;text-transform:none;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--cream);resize:vertical}
+.donebar{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 16px;border-radius:10px;background:var(--mint);color:var(--teal);font-weight:500;font-size:14px}
+.donebar[hidden]{display:none}
+.reset{margin-left:auto;background:none;border:1px solid var(--teal);color:var(--teal);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer}
+.pager{display:flex;justify-content:space-between;gap:14px;margin-top:44px;padding-top:24px;border-top:1px solid var(--line)}
+.pager a{display:flex;flex-direction:column;gap:2px;text-decoration:none;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;max-width:48%}
+.pager a:hover{border-color:var(--sage)}
+.pager small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.pager b{font-family:var(--display);font-weight:400;font-size:18px}
+.pager .next{margin-left:auto;text-align:right}
+
+/* lightbox */
+.lb{position:fixed;inset:0;background:rgba(3,30,31,.92);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;cursor:zoom-out}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:100%;border-radius:6px}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:sticky;top:0;height:auto;z-index:20;padding:14px 18px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px}
+  .side .brand b{font-size:16px}
+  .menu{display:inline-flex;margin-left:auto;background:none;border:1px solid var(--sage);color:var(--mint);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer}
+  .side .prog,.side nav,.simlink{display:block;text-decoration:none;color:var(--teal);background:var(--mint);border-radius:10px;padding:12px 14px;font-weight:600;font-size:13.5px}
+.simlink small{display:block;font-weight:400;font-size:11.5px;color:var(--bar);margin-top:2px}
+.simlink:hover{background:#fff}
+.simbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--teal);color:#fff}
+.simbox p{margin:0;flex:1;min-width:220px;font-size:14px;color:#e6efeb}
+.simbox b{color:#fff}
+.simbox a{background:var(--mint);color:var(--teal);text-decoration:none;font-weight:600;font-size:13px;border-radius:999px;padding:9px 16px;white-space:nowrap}
+.simbox a:hover{background:#fff}
+.hero .cta.ghost{background:transparent;color:var(--mint);border:1px solid var(--mint);margin-left:10px}
+.hero .cta.ghost:hover{background:rgba(255,255,255,.1)}
+@media (max-width:900px){.side.open .simlink{display:block}.side .simlink{display:none;width:100%}}
+.side .foot{display:none;width:100%}
+  .side.open .prog,.side.open nav{display:block}
+  .wrap{padding:28px 18px 60px}
+  .hero .in{padding:44px 18px 40px}
+  .opener{padding:26px 22px}
+  .pair{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
 <div class="app">
-  <header class="tb">
-    <div class="brand"><i>S</i><span>CG Practice Simulator<small>Sanctus Church · for ProPresenter training</small></span></div>
-    <a class="tbtn" id="backcourse" href="../index.html" hidden style="text-decoration:none"><b>←</b>Course</a>
-    <button class="tbtn" data-act="file"><b>☰</b>File</button>
-    <button class="tbtn" data-act="search"><b>⌕</b>Search</button>
-    <button class="tbtn on"><b>▶</b>Show</button>
-    <button class="tbtn" data-act="edit"><b>✎</b>Edit</button>
-    <button class="tbtn" data-act="reflow"><b>≡</b>Reflow</button>
-    <button class="tbtn" data-act="themes"><b>◐</b>Themes</button>
-    <button class="tbtn" data-act="stageeditor"><b>▭</b>Stage</button>
-    <span class="sp"></span>
-    <button class="tog on" data-act="tog-aud" title="Turn the audience output on or off"><i></i>Audience</button>
-    <button class="tog on" data-act="tog-stage" title="Turn the stage output on or off"><i></i>Stage</button>
-    <button class="tbtn" data-act="help"><b>?</b>Help</button>
-    <button class="tbtn" data-act="reset"><b>↺</b>Reset</button>
-    <button class="mbtn" id="mbtn" data-act="missions">Practice missions</button>
-  </header>
-  <div class="main">
-    <aside class="col">
-      <div class="sec" style="flex:0 0 auto;max-height:45%;overflow-y:auto" id="lists"></div>
-      <div class="sec" style="flex:1;border-top:1px solid var(--line)" id="items"></div>
-    </aside>
-    <section class="center">
-      <div class="phead" id="phead"></div>
-            <div class="grid" id="grid"></div>
-      <div class="sizebar"><span>Click a slide to go live · right-click for options · Shift-click to select several</span><span style="flex:1"></span><label for="thumbsize">Slide size</label><input type="range" id="thumbsize" min="130" max="320" value="190"></div>
-    </section>
-    <aside class="col">
-      <div class="outwrap">
-        <div class="outbar"><select id="prevsel" aria-label="Output preview"><option value="aud">AUD · Auditorium screens</option><option value="stage">Stage display</option></select><span class="sp"></span><span class="livedot" id="livedot">● LIVE</span></div>
-        <div class="frame" id="outframe" style="border-radius:6px">
-          <div class="audlayers layer">
-            <canvas id="cam" class="cam" width="640" height="360"></canvas><span class="camlbl">CAM 1 · IMAG</span>
-            <div class="layer" id="lay-media"></div>
-            <div class="layer" id="lay-text"></div>
-            <div class="layer" id="lay-props"></div>
-            <div class="layer" id="lay-msg"></div>
-            <div class="layer" id="lay-off" hidden style="background:#000;display:grid;place-items:center;color:#666;font-size:3cqw">Audience output is off</div>
-          </div>
-          <div class="stagelayer layer" hidden style="background:#000"></div>
-        </div>
-        <div class="clears">
-          <button class="all" data-act="clear" data-what="all" title="F1">Clear All</button>
-          <button data-act="clear" data-what="slide" title="F2">Slide</button>
-          <button data-act="clear" data-what="media" title="F3">Media</button>
-          <button data-act="clear" data-what="props">Props</button>
-          <button data-act="clear" data-what="messages">Msgs</button>
-        </div>
-      </div>
-      <div class="player" id="player"></div>
-      <div class="tabs" role="tablist">
-        <button data-tab="macros">Macros</button><button data-tab="timers">Timers</button><button data-tab="messages">Messages</button><button data-tab="props">Props</button><button data-tab="stage">Stage</button><button data-tab="media">Media</button>
-      </div>
-      <div class="tabbody" id="tabbody"></div>
-    </aside>
-  </div>
+  <aside class="side" id="side">
+    <a class="brand" href="#home"><img src="img/mark_cream.png" alt=""><span><b>CG Operator Training</b><small>Sanctus Church</small></span></a>
+    <button class="menu" id="menu" aria-expanded="false" aria-controls="side">Lessons</button>
+    <div class="prog">
+      <div class="row"><span>Your progress</span><b id="pct">0%</b></div>
+      <div class="meter"><i id="bar" style="width:0%"></i></div>
+      <div class="save" id="save">Progress saves on this device.</div>
+    </div>
+    <nav aria-label="Lessons"><ol id="nav"></ol></nav>
+    <a class="simlink" href="cg-simulator/index.html">▶ Open the practice simulator<small>Try every lesson on a pretend ProPresenter</small></a>
+    <div class="foot">Production Team · 2026</div>
+  </aside>
+  <main id="main"></main>
 </div>
-<div class="drawer" id="drawer" aria-label="Practice missions">
-  <div class="dh"><h2>Practice missions</h2><p>Work through these on the simulator. Each one ticks off on its own when you complete it.</p><div class="meter"><i style="width:0"></i></div><p id="mcount" style="margin-top:6px;font-size:11px"></p></div>
-  <div class="db"></div>
-  <div class="df"><button class="btn" data-act="help">How it works</button><span style="flex:1"></span><button class="btn" data-act="closemissions">Close</button></div>
-</div>
-<div class="toasts" id="toasts" aria-live="polite"></div>
-<script src="data.js"></script>
-<script src="app.js"></script>
-<script>if(/\/cg-simulator\//.test(location.pathname)) document.getElementById("backcourse").hidden=false;</script>
+<div class="lb" id="lb" role="dialog" aria-label="Enlarged screenshot"><img id="lbimg" alt=""></div>
+
+<script id="content" type="application/json">{"titles": ["Before you begin", "The ProPresenter interface", "Libraries and playlists", "Importing media", "Song management", "Editing slides", "Arrangements and Reflow", "Macros", "Stage display", "Sunday checklist"], "html": ["<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Getting started<\/div><h2>Before you begin<\/h2><p>As a CG (computer graphics) operator, you run ProPresenter during the service: lyrics, announcements, videos, lower thirds, timers and stage display.<\/p><\/div>\n<h3>How to use this course<\/h3><ol class=\"steps\"><li>Read one lesson, then watch the matching video in the <em>ProPresenter Training<\/em> folder.<\/li><li>Tick off each <b>Practice<\/b> item as you do it on the CG computer. Your progress is saved.<\/li><li>Write questions in the notes box at the end of each lesson and bring them to your trainer.<\/li><li>Keep the <b>Sunday checklist<\/b> beside you for your first few services.<\/li><\/ol>\n<h3>The Sanctus standards<\/h3><p>These five habits come up in every lesson. They keep our screens consistent from week to week and from campus to campus.<\/p><div class=\"tw\"><table><thead><tr><th><\/th><th>Standard<\/th><th>Why it matters<\/th><\/tr><\/thead><tbody><tr><td class=\"num\">1<\/td><td><b>One Sunday playlist.<\/b> It gets updated each week for the coming Sunday.<\/td><td>Everyone knows where the service lives. There are no stray copies.<\/td><\/tr><tr><td class=\"num\">2<\/td><td><b>All songs live in the Worship library<\/b>, even songs for special events.<\/td><td>Songs are easy to find, filter and reuse.<\/td><\/tr><tr><td class=\"num\">3<\/td><td><b>Use the staff-built themes<\/b>: the Song theme and the theme for each sermon series.<\/td><td>Every slide looks the same from song to song.<\/td><\/tr><tr><td class=\"num\">4<\/td><td><b>Media actions are set to Foreground<\/b>, and videos are set to <b>Stop<\/b>, never Loop.<\/td><td>Media always shows up, and no video restarts mid-service.<\/td><\/tr><tr><td class=\"num\">5<\/td><td><b>Themes, stage displays and macros are pre-configured by staff.<\/b><\/td><td>Know where they are, but ask before changing them.<\/td><\/tr><\/tbody><\/table><\/div><div class=\"callout\"><div class=\"lbl\">Coming soon<\/div><p>Setting outputs, and Chapter 2 on running the service (creating, managing and flowing a service), will be added when those training videos are ready.<\/p><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 01<\/div><h2>The ProPresenter interface<\/h2><p>The Show view has seven areas. You will use every one of them on a Sunday, so learn where each one is first.<\/p><div class=\"vid\">Training video \u00b7 Chapter 1 \u00b7 0:00\u201316:00<\/div><\/div><figure><button class=\"zoom\" data-src=\"img/f01_interface.jpg\" aria-label=\"Enlarge figure 1.1\"><img src=\"img/f01_interface.jpg\" alt=\"The Show view, numbered by area. Each number matches a row in the table below.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.1<\/span><span>The Show view, numbered by area. Each number matches a row in the table below.<\/span><\/figcaption><\/figure><div class=\"tw\"><table><thead><tr><th>#<\/th><th>Area<\/th><th>What it does<\/th><\/tr><\/thead><tbody><tr><td class=\"num\">1<\/td><td><b>Toolbar<\/b><\/td><td>Search, the Show / Edit / Reflow / Bible / Stage views, Themes, and the <b>Audience<\/b> and <b>Stage<\/b> output toggles on the top right.<\/td><\/tr><tr><td class=\"num\">2<\/td><td><b>Library &amp; playlist list<\/b><\/td><td>Libraries (orange icons) store content. Playlists (blue icons) put that content in service order.<\/td><\/tr><tr><td class=\"num\">3<\/td><td><b>Item list<\/b><\/td><td>Every item in the library or playlist you selected. In a playlist you also see the <b>headers<\/b>: Pre Loop, Welcome, Worship and so on.<\/td><\/tr><tr><td class=\"num\">4<\/td><td><b>Presentation area<\/b><\/td><td>The slides of the selected item. Clicking a slide sends it live.<\/td><\/tr><tr><td class=\"num\">5<\/td><td><b>Output preview<\/b><\/td><td>Shows what a screen is showing right now. Use its dropdown to switch between the auditorium (AUD), single screens, or the stage display.<\/td><\/tr><tr><td class=\"num\">6<\/td><td><b>Media player<\/b><\/td><td>Play, pause and scrub the current video, and see its countdown.<\/td><\/tr><tr><td class=\"num\">7<\/td><td><b>Tabs panel<\/b><\/td><td>Audio, stage display layouts, <b>Timers<\/b>, <b>Messages<\/b>, <b>Props<\/b> and <b>Macros<\/b>.<\/td><\/tr><\/tbody><\/table><\/div><h3>The output preview<\/h3><p>You don't have to walk into the auditorium to see what's on screen. The preview shows each output. Switch it to the stage display to see exactly what the band and host see.<\/p><figure><button class=\"zoom\" data-src=\"img/f03_stage_preview.jpg\" aria-label=\"Enlarge figure 1.2\"><img src=\"img/f03_stage_preview.jpg\" alt=\"Output preview set to the stage display: the current lyric in white, the next lyric in green.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.2<\/span><span>Output preview set to the stage display: the current lyric in white, the next lyric in green.<\/span><\/figcaption><\/figure><h3>The tabs panel<\/h3><ol class=\"steps\"><li><b>Stage display layouts<\/b>: the layouts you can send to the stage screen. Different people need different information at different moments.<\/li><li><b>Timers<\/b>: every service timer (Service Start, Worship, Host, Meet &amp; Greet, Sermon, Response, Soundcheck). Slides and macros start them automatically.<\/li><li><b>Messages<\/b>: text shown on top of the screens. For example, a <b>Kids Call<\/b> shows a child's tag code (such as <em>C3H3<\/em>) so their parent knows to come to the kids area.<\/li><li><b>Props<\/b>: small media pieces with transparency that sit on top of everything, such as name lower thirds. They show for a set time and then dissolve on their own.<\/li><li><b>Macros<\/b>: one-click bundles of actions (Lesson 7).<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f04_timers.jpg\" aria-label=\"Enlarge figure 1.3\"><img src=\"img/f04_timers.jpg\" alt=\"The Timers tab.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.3<\/span><span>The Timers tab.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f05_messages.jpg\" aria-label=\"Enlarge figure 1.4\"><img src=\"img/f05_messages.jpg\" alt=\"Messages tab with a Kids Call code.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.4<\/span><span>Messages tab with a Kids Call code.<\/span><\/figcaption><\/figure><\/div><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f06_props.jpg\" aria-label=\"Enlarge figure 1.5\"><img src=\"img/f06_props.jpg\" alt=\"Props: name keys that clear after 10 seconds.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.5<\/span><span>Props: name keys that clear after 10 seconds.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f07_macros_tab.jpg\" aria-label=\"Enlarge figure 1.6\"><img src=\"img/f07_macros_tab.jpg\" alt=\"Macros: the icons show what each one does.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.6<\/span><span>Macros: the icons show what each one does.<\/span><\/figcaption><\/figure><\/div><h3>Other views in the toolbar<\/h3><ul class=\"dots\"><li><b>Search<\/b> finds an item across every library. The <em>Filter<\/em> box at the bottom of a list searches only that list.<\/li><li><b>Themes<\/b> holds the staff-built styles for songs, sermon series, lower thirds and full screens. You will apply themes, but you won't edit them.<\/li><li><b>Edit<\/b> opens the editor for whichever item is selected. <b>Show<\/b> brings you back to running the service.<\/li><li><b>Reflow<\/b> changes the line breaks of a whole song (Lesson 6). <b>Bible<\/b> pulls up scripture.<\/li><li><b>Stage<\/b> opens the stage display editor (Lesson 8). It is pre-configured.<\/li><li>The <b>Audience<\/b> and <b>Stage<\/b> buttons turn those outputs on and off.<\/li><\/ul><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f08_themes_popup.jpg\" aria-label=\"Enlarge figure 1.7\"><img src=\"img/f08_themes_popup.jpg\" alt=\"The Themes window.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.7<\/span><span>The Themes window.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f09_edit_view.jpg\" aria-label=\"Enlarge figure 1.8\"><img src=\"img/f09_edit_view.jpg\" alt=\"The Edit view.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 1.8<\/span><span>The Edit view.<\/span><\/figcaption><\/figure><\/div><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Point to all seven areas of the Show view without looking at Fig 1.1.<\/li><li>Switch the output preview between AUD and the stage display.<\/li><li>Open each tab in the tabs panel and name what it is for.<\/li><li>Search for a song using both Search and the Filter box.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 02<\/div><h2>Libraries and playlists<\/h2><p>A library is where content is stored. A playlist is the order of service built from that content. A Sunday service is simply a playlist.<\/p><div class=\"vid\">Training video \u00b7 Chapter 1 \u00b7 16:00\u201323:00<\/div><\/div><ul class=\"dots\"><li><b>Library<\/b>: think of the whole public library building, with sections such as <em>Worship<\/em>, <em>Women's Connect<\/em> or <em>Pre-Post<\/em>. Organise libraries by ministry or event.<\/li><li><b>Playlist<\/b>: the running order for one event, split into <b>headers<\/b>. Headers only exist in playlists.<\/li><\/ul><h3>How the Sunday playlist runs<\/h3><p>GOOD MORNING TEAM! \u2192 Pre-Service Timer \u2192 <b>Pre Loop<\/b> \u2192 <b>Welcome<\/b> \u2192 <b>Worship<\/b> \u2192 <b>Transition<\/b> \u2192 <b>Meet &amp; Greet<\/b> \u2192 <b>Host<\/b> \u2192 <b>Sermon<\/b> \u2192 <b>Response<\/b> \u2192 <b>Close<\/b> \u2192 <b>Post Loop<\/b>.<\/p><figure><button class=\"zoom\" data-src=\"img/f02_sunday_playlist.jpg\" aria-label=\"Enlarge figure 2.1\"><img src=\"img/f02_sunday_playlist.jpg\" alt=\"The Sunday playlist with its headers, highlighted on the left.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.1<\/span><span>The Sunday playlist with its headers, highlighted on the left.<\/span><\/figcaption><\/figure><h3>Create a library<\/h3><ol class=\"steps\"><li>Click the <b>+<\/b> at the top of the library list and choose <b>New Library<\/b>.<\/li><li>Name it after the ministry or event.<\/li><li>Add presentations and media to it.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f12_new_library.jpg\" aria-label=\"Enlarge figure 2.2\"><img src=\"img/f12_new_library.jpg\" alt=\"The + menu: New Library, New Presentation, New Playlist.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.2<\/span><span>The + menu: New Library, New Presentation, New Playlist.<\/span><\/figcaption><\/figure><h3>Build a playlist<\/h3><ol class=\"steps\"><li>Click <b>+ \u2192 New Playlist<\/b> and name it.<\/li><li>Add a <b>header<\/b> (for example <em>Pre-Service<\/em>) to start each section.<\/li><li>Use <b>+ \u2192 New Presentation<\/b> to add a blank placeholder item where you need one.<\/li><li>Drag items from a library into the playlist, then drag them into order.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f13_new_presentation_blank.jpg\" aria-label=\"Enlarge figure 2.3\"><img src=\"img/f13_new_presentation_blank.jpg\" alt=\"Naming a new presentation.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.3<\/span><span>Naming a new presentation.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f14_playlist_header.jpg\" aria-label=\"Enlarge figure 2.4\"><img src=\"img/f14_playlist_header.jpg\" alt=\"A Pre-Service header with three items.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.4<\/span><span>A Pre-Service header with three items.<\/span><\/figcaption><\/figure><\/div><h3>Make slides advance on their own<\/h3><p>Use <b>Go to Next Timer<\/b> for loops and for timed moments such as the host name key.<\/p><ol class=\"steps\"><li>Right-click a slide and choose <b>Go to Next Timer\u2026<\/b><\/li><li>Enter the <b>Duration<\/b> in seconds.<\/li><li>On the last slide of a loop, tick <b>Loop to Beginning<\/b>.<\/li><li>Click <b>Done<\/b>. The seconds now show in the top-left corner of the slide.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f15_slide_timer.jpg\" aria-label=\"Enlarge figure 2.5\"><img src=\"img/f15_slide_timer.jpg\" alt=\"The Slide Timer dialog.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.5<\/span><span>The Slide Timer dialog.<\/span><\/figcaption><\/figure><div class=\"callout\"><div class=\"lbl\">Sanctus standard<\/div><p>The <b>Welcome<\/b> and <b>Host<\/b> name slides already carry a <b>10-second<\/b> timer. Once you click them, they advance on their own, so these moments look the same every week.<\/p><\/div><h3>Transparent slides and IMAG<\/h3><p>A <b>checkerboard<\/b> slide is transparent, not black. At Ajax, the screens show live cameras (IMAG), and ProPresenter sits on top of them.<\/p><ul class=\"dots\"><li>A transparent slide lets the cameras show through.<\/li><li>A video or full-screen graphic covers the cameras. When it ends and the slide goes transparent, the cameras come back.<\/li><li>A name key is transparent except for the name, so the person on camera appears with their name over them.<\/li><\/ul><figure><button class=\"zoom\" data-src=\"img/f16_transparent.jpg\" aria-label=\"Enlarge figure 2.6\"><img src=\"img/f16_transparent.jpg\" alt=\"Welcome: a slide with a 10-second timer, then a transparent slide.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 2.6<\/span><span>Welcome: a slide with a 10-second timer, then a transparent slide.<\/span><\/figcaption><\/figure><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Create a practice library and a practice playlist with two headers.<\/li><li>Drag three items into the playlist and reorder them.<\/li><li>Build a three-slide loop with a 5-second timer and Loop to Beginning.<\/li><li>Find the checkerboard slides in the Sunday playlist and explain what they do.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 03<\/div><h2>Importing media<\/h2><p>To add a graphic or video, duplicate an existing slide and swap in its media action. Always set the action to Foreground, and set videos to Stop.<\/p><div class=\"vid\">Training video \u00b7 Chapter 1 \u00b7 23:00\u201328:40<\/div><\/div><h3>Add a graphic to a loop<\/h3><ol class=\"steps\"><li>In the Sunday playlist, open the item, for example <em>Easter Pre-Service Loop<\/em>.<\/li><li>Select a slide and copy and paste it (<b>\u2318C / \u2318V<\/b> on Mac, <b>Ctrl+C / Ctrl+V<\/b> on Windows).<\/li><li>Right-click the copy, choose <b>Remove Action<\/b>, then <b>Add Media Action\u2026<\/b>, and pick the graphic.<\/li><li>Right-click again and choose <b>Edit Action \u2192 Behavior \u2192 Foreground<\/b>.<\/li><li>Repeat for each new graphic.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f17_add_media_action.jpg\" aria-label=\"Enlarge figure 3.1\"><img src=\"img/f17_add_media_action.jpg\" alt=\"Right-click: Add Action, Edit / Remove Action.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 3.1<\/span><span>Right-click: Add Action, Edit / Remove Action.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f18_behavior.jpg\" aria-label=\"Enlarge figure 3.2\"><img src=\"img/f18_behavior.jpg\" alt=\"Edit Action \u2192 Behavior.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 3.2<\/span><span>Edit Action \u2192 Behavior.<\/span><\/figcaption><\/figure><\/div><div class=\"callout\"><div class=\"lbl\">Why Foreground<\/div><p>Foreground makes the media a top-layer element. Background and foreground respond differently to automations. If you skip this step, the graphic might not show up when it should.<\/p><\/div><h3>Change how long a slide stays up<\/h3><ol class=\"steps\"><li>Right-click the slide and choose <b>Go to Next Timer\u2026<\/b><\/li><li>Change the duration. Click <b>Remove<\/b> to take the timer off.<\/li><li>If a graphic looks wrong, use <b>Show in Finder<\/b> in the action menu to jump to the file on the hard drive.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f19_slide_timer_loop.jpg\" aria-label=\"Enlarge figure 3.3\"><img src=\"img/f19_slide_timer_loop.jpg\" alt=\"Changing a loop slide's timer.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 3.3<\/span><span>Changing a loop slide's timer.<\/span><\/figcaption><\/figure><h3>Add a video<\/h3><ol class=\"steps\"><li>Duplicate a slide and use <b>Add Media Action\u2026<\/b> to choose the video file.<\/li><li>Set <b>Edit Action \u2192 Behavior \u2192 Foreground<\/b>.<\/li><li>Set <b>Edit Action \u2192 Playback Behavior \u2192 Stop<\/b>.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f20_playback_behavior.jpg\" aria-label=\"Enlarge figure 3.4\"><img src=\"img/f20_playback_behavior.jpg\" alt=\"Playback Behavior: choose Stop, not Loop.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 3.4<\/span><span>Playback Behavior: choose Stop, not Loop.<\/span><\/figcaption><\/figure><div class=\"callout warn\"><div class=\"lbl\">Watch out<\/div><p>Videos often default to <b>Loop<\/b>. A looping video will start over in the middle of the service, and someone will have to scramble to pause it. Always check Playback Behavior.<\/p><\/div><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Add two new graphics to a practice loop using Add Media Action.<\/li><li>Set both to Behavior \u2192 Foreground.<\/li><li>Change one slide's timer, then remove it.<\/li><li>Add a video and set its Playback Behavior to Stop.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 04<\/div><h2>Song management<\/h2><p>Every song lives in the Worship library, uses the Song theme, and is imported through SongSelect rather than typed by hand.<\/p><div class=\"vid\">Training video \u00b7 Song Management<\/div><\/div><p><b>Why one library:<\/b> keeping every song in one place makes songs easy to filter, find and compare. It also lets you see different versions side by side. A name in brackets, such as <em>[ Sanctus ]<\/em>, marks the Sanctus arrangement of that song.<\/p><h3>Import from SongSelect (preferred)<\/h3><p>SongSelect is CCLI's library of worship lyrics. CCLI manages the copyrights for most worship songs.<\/p><ol class=\"steps\"><li>Select the <b>Worship library<\/b>.<\/li><li>Go to <b>File \u2192 Import \u2192 SongSelect by CCLI\u2026<\/b><\/li><li>Search by title or CCLI number. Check the lyric preview to make sure it's the right song, then click <b>Import<\/b>.<\/li><li>In the Import window, set:<ul><li><b>Slides delimited by<\/b> and <b>lines per slide<\/b> to match the theme<\/li><li><b>Theme<\/b>: Song (for your campus)<\/li><li><b>Library<\/b>: Worship, plus the <b>Playlist<\/b> for the service<\/li><\/ul><\/li><li>Click <b>Import<\/b>. The song appears in the library and the playlist, already in the theme's style.<\/li><li>Check for single words left alone on a line, and fix them with <b>Reflow<\/b> (Lesson 6).<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f23_songselect_menu.jpg\" aria-label=\"Enlarge figure 4.1\"><img src=\"img/f23_songselect_menu.jpg\" alt=\"File \u2192 Import \u2192 SongSelect by CCLI.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.1<\/span><span>File \u2192 Import \u2192 SongSelect by CCLI.<\/span><\/figcaption><\/figure><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f24_songselect_search.jpg\" aria-label=\"Enlarge figure 4.2\"><img src=\"img/f24_songselect_search.jpg\" alt=\"SongSelect search with lyric preview.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.2<\/span><span>SongSelect search with lyric preview.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f25_import_dialog.jpg\" aria-label=\"Enlarge figure 4.3\"><img src=\"img/f25_import_dialog.jpg\" alt=\"Import settings: lines, theme, library, playlist.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.3<\/span><span>Import settings: lines, theme, library, playlist.<\/span><\/figcaption><\/figure><\/div><h3>Create a song by hand<\/h3><p>Only do this if the song isn't in SongSelect.<\/p><ol class=\"steps\"><li>With the Worship library selected, click <b>+ \u2192 New Presentation<\/b>.<\/li><li>Name the song and choose the <b>Song<\/b> theme. At Ajax, lyrics sit at the <b>bottom<\/b> of the screen because cameras (IMAG) fill it.<\/li><li>If you like, choose a <b>Playlist<\/b> to add it straight into tonight's service.<\/li><li>Click <b>New<\/b>.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f21_new_song.jpg\" aria-label=\"Enlarge figure 4.4\"><img src=\"img/f21_new_song.jpg\" alt=\"New Presentation: name, theme, library, playlist.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.4<\/span><span>New Presentation: name, theme, library, playlist.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f22_playlist_dropdown.jpg\" aria-label=\"Enlarge figure 4.5\"><img src=\"img/f22_playlist_dropdown.jpg\" alt=\"Choosing a playlist adds the song to it.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.5<\/span><span>Choosing a playlist adds the song to it.<\/span><\/figcaption><\/figure><\/div><h3>Add, remove and order songs<\/h3><ul class=\"dots\"><li><b>Add to a service:<\/b> drag the song from the Worship library into the playlist, under the Worship header.<\/li><li><b>Delete:<\/b> select the song and press <b>Delete<\/b>. This removes it from the library for everyone, so be sure.<\/li><\/ul><div class=\"callout\"><div class=\"lbl\">Sanctus standard<\/div><p>Never save songs into other libraries, even for a different event. They may be reused later, and one library keeps things clear for everyone.<\/p><\/div><figure><button class=\"zoom\" data-src=\"img/f26_reflow_song.jpg\" aria-label=\"Enlarge figure 4.6\"><img src=\"img/f26_reflow_song.jpg\" alt=\"After importing, Reflow cleans up the line breaks.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 4.6<\/span><span>After importing, Reflow cleans up the line breaks.<\/span><\/figcaption><\/figure><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Import a song from SongSelect into the Worship library using the Song theme.<\/li><li>Add it to a practice playlist under a Worship header.<\/li><li>Create a short song by hand with New Presentation.<\/li><li>Find two versions of the same song and tell them apart.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 05<\/div><h2>Editing slides<\/h2><p>Right-click a slide and choose Quick Edit for a fast word fix, or Edit Slide for full control. When a song looks off, re-apply the current theme rather than restyling it by hand.<\/p><div class=\"vid\">Training video \u00b7 Editing Slides<\/div><\/div><div class=\"tw\"><table><thead><tr><th><\/th><th>Quick Edit<\/th><th>Edit Slide<\/th><\/tr><\/thead><tbody><tr><td><b>Use for<\/b><\/td><td>Fixing a typo or changing a word<\/td><td>Text style, layout, shapes and media<\/td><\/tr><tr><td><b>Tools<\/b><\/td><td>Text only<\/td><td>Full text panel, layers, shapes, media, video and web fills<\/td><\/tr><\/tbody><\/table><\/div><h3>Working in Edit Slide<\/h3><ol class=\"steps\"><li>Double-click into a text box to edit it.<\/li><li>Use the <b>Text<\/b> panel on the right for font, size, bold, italic, underline, strikethrough, capitalisation, alignment, character spacing, line height and colour.<\/li><li><b>Stroke<\/b> (outline) and <b>Shadow<\/b> can be ticked on or off.<\/li><li>Objects stack as <b>layers<\/b> (see <em>Objects<\/em> at the bottom left). A new shape sits above the text until you reorder it.<\/li><li>The toolbar adds shapes, images, a <b>video input<\/b> such as a camera feed, or a <b>web<\/b> fill that shows a website.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f27_rich_text.jpg\" aria-label=\"Enlarge figure 5.1\"><img src=\"img/f27_rich_text.jpg\" alt=\"Edit Slide with the Text panel.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.1<\/span><span>Edit Slide with the Text panel.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f28_web_fill.jpg\" aria-label=\"Enlarge figure 5.2\"><img src=\"img/f28_web_fill.jpg\" alt=\"A shape filled with a website (Fill \u2192 Web).\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.2<\/span><span>A shape filled with a website (Fill \u2192 Web).<\/span><\/figcaption><\/figure><\/div><h3>Fix an off-brand song<\/h3><p>Older songs can still carry the style from the last time they were used. Every song should look the same as the one before it.<\/p><ol class=\"steps\"><li>Click the song's <b>first slide<\/b>, then hold <b>Shift<\/b> and click the <b>last slide<\/b>.<\/li><li>Right-click and choose <b>Themes \u2192 Song<\/b>, then pick the right version (Top, Middle or Bottom) for your campus.<\/li><li>Every slide switches to the current brand font and size.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f29_slide_menu_themes.jpg\" aria-label=\"Enlarge figure 5.3\"><img src=\"img/f29_slide_menu_themes.jpg\" alt=\"Right-click \u2192 Themes.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.3<\/span><span>Right-click \u2192 Themes.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f30_song_theme_variants.jpg\" aria-label=\"Enlarge figure 5.4\"><img src=\"img/f30_song_theme_variants.jpg\" alt=\"The Song theme: Top, Middle, Bottom.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.4<\/span><span>The Song theme: Top, Middle, Bottom.<\/span><\/figcaption><\/figure><\/div><h3>Sermon slides and lower thirds<\/h3><p>At Ajax, sermon text runs as a <b>lower third<\/b>. The cameras fill the screen, and the text sits along the bottom on top of them: a text box over a transparent bar made by the communications team. Staff build these slides from the sermon notes. To fix one:<\/p><ol class=\"steps\"><li>Right-click the slide and choose <b>Themes \u2192 [current series]<\/b>.<\/li><li>Pick the layout: <b>Scripture L3rd<\/b>, <b>Quote L3rd<\/b>, <b>Scripture FS<\/b>, <b>Quote FS<\/b> or <b>Series BG<\/b>.<\/li><li>The text re-fits to that layout.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f31_lower_third.jpg\" aria-label=\"Enlarge figure 5.5\"><img src=\"img/f31_lower_third.jpg\" alt=\"A quote lower third over the transparent bar.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.5<\/span><span>A quote lower third over the transparent bar.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f32_series_theme.jpg\" aria-label=\"Enlarge figure 5.6\"><img src=\"img/f32_series_theme.jpg\" alt=\"Sermon series theme layouts.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 5.6<\/span><span>Sermon series theme layouts.<\/span><\/figcaption><\/figure><\/div><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Use Quick Edit to fix a word on a lyric slide.<\/li><li>Open Edit Slide and turn the text shadow off, then back on.<\/li><li>Select every slide of a song and re-apply the Song theme.<\/li><li>Switch a sermon slide between Quote L3rd and Quote FS.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 06<\/div><h2>Arrangements and Reflow<\/h2><p>On Sunday morning, listen to the band rehearse and set each song's arrangement to match what they will actually sing. Then during the service you simply press the arrow key.<\/p><div class=\"vid\">Training video \u00b7 Managing Arrangements<\/div><\/div><h3>Groups and arrangements<\/h3><p>When you open a song, two colour-coded rows appear at the top:<\/p><ul class=\"dots\"><li><b>Groups<\/b> (top row): every section in the song, such as Verse 1, Chorus, Bridge, Tag or Blank.<\/li><li><b>Arrangement<\/b> (second row): the order the sections play in today. A song can have several saved arrangements.<\/li><\/ul><figure><button class=\"zoom\" data-src=\"img/f33_groups_arrangement.jpg\" aria-label=\"Enlarge figure 6.1\"><img src=\"img/f33_groups_arrangement.jpg\" alt=\"The Groups row and the Arrangement row.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 6.1<\/span><span>The Groups row and the Arrangement row.<\/span><\/figcaption><\/figure><h3>Set the arrangement during rehearsal<\/h3><ol class=\"steps\"><li>Open the song from the playlist.<\/li><li><b>Drag<\/b> a group from the Groups row into the arrangement to add it, for example a second verse or a tag chorus.<\/li><li><b>Drag<\/b> sections along the arrangement row to reorder them. If they start with the chorus, move it before Verse 1.<\/li><li>Click the <b>x<\/b> on a section to remove it. If they skip the bridge, take it out.<\/li><li>Watch the slides below update to match.<\/li><\/ol><div class=\"callout\"><div class=\"lbl\">Why this matters<\/div><p>Without an arrangement you are guessing and jumping around: \"back to the chorus\u2026 now the bridge\u2026\". With the arrangement set at rehearsal, you just keep advancing.<\/p><\/div><h3>Reflow lyrics to match how they are sung<\/h3><ul class=\"dots\"><li><b>Orphans:<\/b> a single word alone on a line.<\/li><li><b>Phrasing:<\/b> line breaks that don't follow how the song is sung. For example: <em>\"There's joy in the house of the Lord / There's joy in the house of the Lord today.\"<\/em><\/li><\/ul><ol class=\"steps\"><li>In the <b>playlist<\/b>, right-click the song and choose <b>Reflow<\/b>. Use the playlist, not a slide, because this changes the whole song. You can also click <b>Reflow<\/b> in the toolbar while the song is selected.<\/li><li>Re-type the line breaks in the left column. The preview on the right updates as you go.<\/li><li>To split a slide, put your cursor <b>above<\/b> where the break should go and click <b>Insert Slide Break<\/b>.<\/li><li>Click <b>Show<\/b> in the toolbar to go back.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f34_playlist_reflow.jpg\" aria-label=\"Enlarge figure 6.2\"><img src=\"img/f34_playlist_reflow.jpg\" alt=\"Right-click the song in the playlist \u2192 Reflow.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 6.2<\/span><span>Right-click the song in the playlist \u2192 Reflow.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f35_reflowed.jpg\" aria-label=\"Enlarge figure 6.3\"><img src=\"img/f35_reflowed.jpg\" alt=\"The Reflow editor and Insert Slide Break.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 6.3<\/span><span>The Reflow editor and Insert Slide Break.<\/span><\/figcaption><\/figure><\/div><div class=\"callout\"><div class=\"lbl\">Tip<\/div><p>Aim for <b>two lines per slide<\/b> where you can. It's not a rule, but it reads best. Reflow only changes text and line breaks. For styling, use Edit Slide.<\/p><\/div><h3>Move a slide to a different group<\/h3><ol class=\"steps\"><li>Right-click a slide and choose <b>Group<\/b>.<\/li><li>Pick the right section, such as Verse 2, Chorus, Bridge or Tag 1.<\/li><li>The slide changes colour and now moves with that group in the arrangement.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f36_group_menu.jpg\" aria-label=\"Enlarge figure 6.4\"><img src=\"img/f36_group_menu.jpg\" alt=\"Right-click \u2192 Group lists every section.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 6.4<\/span><span>Right-click \u2192 Group lists every section.<\/span><\/figcaption><\/figure><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Rearrange a song so it starts with the chorus and drops the bridge.<\/li><li>Add a second chorus at the end by dragging it in.<\/li><li>Reflow a song so no line has a single word.<\/li><li>Insert a slide break, then move one slide into a different group.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 07<\/div><h2>Macros<\/h2><p>A macro bundles several actions into one trigger. Attach it to a slide, and clicking that slide runs every action at once.<\/p><div class=\"vid\">Training video \u00b7 Macros<\/div><\/div><p><b>Why macros:<\/b> at one moment in the service you might need to clear the screens, switch the stage display to lyrics and start the worship timer. Before macros, each slide carried its own list of actions, sometimes as many as 20, repeated wherever they were needed. A macro turns that into one repeatable click.<\/p><div class=\"callout\"><div class=\"lbl\">Example: the PreService Loop macro<\/div><p>Clears everything (Clear All), sets the stage display to <em>Service Start<\/em>, starts the Worship, Host, Sermon, Response and Soundcheck timers, and triggers the online elements.<\/p><\/div><p>You'll also find Soundcheck, Host Open, Worship Open, Worship Song, Host Mid (Open), Meet &amp; Greet, Sermon Start (Bumper / After Bumper), Worship Response, Host Close, PostService Loop, Sermon Video, and the 9 AM and 11 AM service starts.<\/p><h3>Attach a macro to a slide<\/h3><ol class=\"steps\"><li>Right-click the slide and choose <b>Add Action \u2192 Macro \u2192 Sunday \u2192 [macro name]<\/b>.<\/li><li>A macro icon appears on the slide.<\/li><li>Click the slide. The macro runs and the slide highlights. Check the output preview to confirm it worked, for example that the stage display now shows the service clock.<\/li><li>To change or remove it, right-click and choose <b>Edit Action<\/b> or <b>Remove Action<\/b>.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f37_macro_on_slide.jpg\" aria-label=\"Enlarge figure 7.1\"><img src=\"img/f37_macro_on_slide.jpg\" alt=\"A song's first slide already carries the Worship Open macro.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 7.1<\/span><span>A song's first slide already carries the Worship Open macro.<\/span><\/figcaption><\/figure><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f38_add_action_macro.jpg\" aria-label=\"Enlarge figure 7.2\"><img src=\"img/f38_add_action_macro.jpg\" alt=\"Add Action \u2192 Macro \u2192 Sunday \u2192 PreService Loop.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 7.2<\/span><span>Add Action \u2192 Macro \u2192 Sunday \u2192 PreService Loop.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f39_macro_result.jpg\" aria-label=\"Enlarge figure 7.3\"><img src=\"img/f39_macro_result.jpg\" alt=\"Result: the stage display shows the countdown.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 7.3<\/span><span>Result: the stage display shows the countdown.<\/span><\/figcaption><\/figure><\/div><h3>Build a new macro<\/h3><ol class=\"steps\"><li>In the <b>Macros<\/b> tab, click <b>+<\/b> to create a macro and name it.<\/li><li>Right-click it, choose <b>Add Action<\/b>, and add what you need: Clear (for example, clear audio), Stage layout, Timer, Props, Message, Media and so on.<\/li><li>Attach it to slides as shown above.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f40_new_macro_actions.jpg\" aria-label=\"Enlarge figure 7.4\"><img src=\"img/f40_new_macro_actions.jpg\" alt=\"Adding actions to a macro.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 7.4<\/span><span>Adding actions to a macro.<\/span><\/figcaption><\/figure><div class=\"callout\"><div class=\"lbl\">Sanctus standard<\/div><p>Staff maintain the Sunday macros. Build your own to practise, but ask before changing a shared one.<\/p><\/div><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Name three actions the PreService Loop macro runs.<\/li><li>Attach a macro to a practice slide, click it, and confirm the result in the preview.<\/li><li>Remove the macro from that slide.<\/li><li>Build a practice macro with two actions.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"lesson\"><div class=\"opener\"><div class=\"eyebrow\">Lesson 08<\/div><h2>Stage display<\/h2><p>The stage display is the screen facing the stage. It shows each person what they need right now: lyrics for the band, notes and a timer for the host, a countdown for the preacher. Macros switch it during the service.<\/p><div class=\"vid\">Training video \u00b7 Stage Display<\/div><\/div><p><b>Layouts on the CG computer<\/b> include Service Starts, Soundcheck, Worship, Worship Response, Host Notes, Sermon (Live) Countdown, Sermon + Video (Bumper), Video Countdown, Scripture, Conference and Restoration Prayer.<\/p><figure><button class=\"zoom\" data-src=\"img/f41_stage_layouts.jpg\" aria-label=\"Enlarge figure 8.1\"><img src=\"img/f41_stage_layouts.jpg\" alt=\"Choosing a stage layout.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.1<\/span><span>Choosing a stage layout.<\/span><\/figcaption><\/figure><h3>Build or edit a layout<\/h3><p>Layouts are pre-configured, so treat this section as background knowledge.<\/p><ol class=\"steps\"><li>Open <b>Stage<\/b> in the toolbar (or choose <b>Edit<\/b> from the stage layout list).<\/li><li>Add elements: text boxes, timers, a clock, or <b>screen previews<\/b> that show the main screen.<\/li><li>Choose what fills each element. A text box can hold <b>static<\/b> text, or <b>Linked Text<\/b> tied to something live:<ul><li><b>Current Slide<\/b>: the lyric on screen now<\/li><li><b>Next Slide<\/b>: what's coming next<\/li><li><b>Timers<\/b>, for example Worship, shown in minutes only, with its own size and alignment<\/li><\/ul><\/li><li>Name the layout.<\/li><\/ol><figure><button class=\"zoom\" data-src=\"img/f42_stage_editor_layout.jpg\" aria-label=\"Enlarge figure 8.2\"><img src=\"img/f42_stage_editor_layout.jpg\" alt=\"The stage editor showing the Service Starts layout.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.2<\/span><span>The stage editor showing the Service Starts layout.<\/span><\/figcaption><\/figure><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f43_linked_text.jpg\" aria-label=\"Enlarge figure 8.3\"><img src=\"img/f43_linked_text.jpg\" alt=\"Linked Text: Current Slide, Next Slide, Timers.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.3<\/span><span>Linked Text: Current Slide, Next Slide, Timers.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f44_current_next.jpg\" aria-label=\"Enlarge figure 8.4\"><img src=\"img/f44_current_next.jpg\" alt=\"Worship: current slide on the left, next slide on the right.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.4<\/span><span>Worship: current slide on the left, next slide on the right.<\/span><\/figcaption><\/figure><\/div><h3>Send a layout to the stage with a macro<\/h3><ol class=\"steps\"><li>In the <b>Macros<\/b> tab, right-click the macro and choose <b>Add Action \u2192 Stage \u2192 [layout]<\/b>.<\/li><li>Attach the macro to the slide where the change should happen (Lesson 7).<\/li><li>Click the slide and check the output preview to see the new layout.<\/li><\/ol><div class=\"pair\"><figure><button class=\"zoom\" data-src=\"img/f45_timer.jpg\" aria-label=\"Enlarge figure 8.5\"><img src=\"img/f45_timer.jpg\" alt=\"Adding the Worship timer, minutes only.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.5<\/span><span>Adding the Worship timer, minutes only.<\/span><\/figcaption><\/figure><figure><button class=\"zoom\" data-src=\"img/f46_stage_result.jpg\" aria-label=\"Enlarge figure 8.6\"><img src=\"img/f46_stage_result.jpg\" alt=\"The result on stage: lyric, next lyric, timer.\" loading=\"lazy\"><\/button><figcaption><span class=\"fn\">Fig 8.6<\/span><span>The result on stage: lyric, next lyric, timer.<\/span><\/figcaption><\/figure><\/div><div class=\"practice\"><div class=\"lbl\">Practice on the CG computer<\/div><ul class=\"check\"><li>Name the stage layout used for worship and what it shows.<\/li><li>Switch the output preview to the stage display during a song.<\/li><li>Find the Linked Text options in the stage editor (don't save changes).<\/li><li>Explain how a macro changes the stage layout.<\/li><\/ul><label class=\"notes-lbl\">Notes &amp; questions for your trainer<textarea class=\"notes\" rows=\"3\" placeholder=\"Anything you want to ask about this lesson\u2026\"><\/textarea><\/label><\/div><\/section>", "<section class=\"section\"><div class=\"opener\"><div class=\"eyebrow\">Service day<\/div><h2>Sunday checklist<\/h2><p>Open this page on your phone or the CG computer on Sunday and tick items off as you go. Use Reset to clear it for next week.<\/p><\/div>\n<h3>Before rehearsal<\/h3><ul class=\"check\">\n<li>Open the <b>Sunday<\/b> playlist and check that every header has its items: Pre Loop, Welcome, Worship, Meet &amp; Greet, Host, Sermon, Response, Close, Post Loop.<\/li>\n<li>Check that every song comes from the <b>Worship library<\/b> and uses the <b>Song<\/b> theme. Re-apply the theme to any song that looks different.<\/li>\n<li>Check that new graphics and videos are set to <b>Foreground<\/b>, and videos to <b>Playback: Stop<\/b>.<\/li>\n<li>Check that the <b>Audience<\/b> and <b>Stage<\/b> outputs are on.<\/li><\/ul>\n<h3>During rehearsal<\/h3><ul class=\"check\">\n<li>Follow the band and set each song's <b>arrangement<\/b> to match.<\/li>\n<li><b>Reflow<\/b> any slide with an orphaned word or awkward phrasing.<\/li><\/ul>\n<h3>During the service<\/h3><ul class=\"check\">\n<li>Click the macro slides at the right moments, and watch the output preview to confirm they worked.<\/li>\n<li>Advance songs with the <b>arrow key<\/b>.<\/li>\n<li>Use <b>Props<\/b> for name lower thirds and <b>Messages<\/b> for kids calls.<\/li><\/ul>\n<h3>Quick reference<\/h3><div class=\"tw\"><table><thead><tr><th>Task<\/th><th>How<\/th><\/tr><\/thead><tbody><tr><td>Fix a typo on a slide<\/td><td>Right-click \u2192 Quick Edit<\/td><\/tr><tr><td>Restyle a song<\/td><td>First slide, Shift-click last \u2192 right-click \u2192 Themes \u2192 Song<\/td><\/tr><tr><td>Add a song<\/td><td>File \u2192 Import \u2192 SongSelect by CCLI \u2192 Worship library + Song theme<\/td><\/tr><tr><td>Fix line breaks<\/td><td>Right-click the song in the playlist \u2192 Reflow<\/td><\/tr><tr><td>Auto-advance a slide<\/td><td>Right-click \u2192 Go to Next Timer\u2026 (Loop to Beginning for loops)<\/td><\/tr><tr><td>Add a graphic or video<\/td><td>Duplicate slide \u2192 Remove Action \u2192 Add Media Action \u2192 Behavior: Foreground<\/td><\/tr><tr><td>Stop a video looping<\/td><td>Edit Action \u2192 Playback Behavior \u2192 Stop<\/td><\/tr><tr><td>Attach a macro<\/td><td>Right-click \u2192 Add Action \u2192 Macro \u2192 Sunday \u2192 [macro]<\/td><\/tr><tr><td>Change a slide's section<\/td><td>Right-click \u2192 Group \u2192 [section]<\/td><\/tr><\/tbody><\/table><\/div><\/section>"]}</script>
+<script>
+(function(){
+const C = JSON.parse(document.getElementById('content').textContent);
+const T = C.titles, N = T.length;
+const main = document.getElementById('main'), navEl = document.getElementById('nav');
+const tpl = C.html.map(h => { const d = document.createElement('div'); d.innerHTML = h; return d; });
+// tag every checklist item with a stable key
+tpl.forEach((d,li) => d.querySelectorAll('ul.check').forEach((ul,ui) => ul.querySelectorAll('li').forEach((it,ii) => it.dataset.key = `l${li}-${ui}-${ii}`)));
+const keysFor = li => [...tpl[li].querySelectorAll('ul.check li')].map(x => x.dataset.key);
+const TOTAL_KEYS = Array.from({length:9},(_,i)=>keysFor(i)).flat(); // lessons only, not the Sunday checklist
+
+let state = {checks:{}, notes:{}};
+const LS = 'sanctus-cg-training-v1';
+try { const s = JSON.parse(localStorage.getItem(LS)); if (s && s.checks) state = s; } catch(e) {}
+let docRef = null, saving = Promise.resolve(), saveTimer = null;
+const saveEl = document.getElementById('save');
+
+function persist(){
+  try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e) {}
+  if (!docRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const body = JSON.parse(JSON.stringify(state));
+    saving = saving.then(() => docRef.set(body)).then(() => { saveEl.textContent = 'Saved to your account.'; })
+      .catch(e => { if (e && e.code === 'invalid_argument') { docRef = null; saveEl.textContent = 'Progress saves on this device.'; } else saveEl.textContent = 'Couldn’t save right now. Your progress is kept on this device.'; });
+  }, 500);
+}
+
+(async () => {
+  if (!window.claude || !window.claude.use) return;
+  try {
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!db || !user) return;
+    const id = await user.id();
+    if (!id) return;
+    const ref = db.doc('data/users/' + id + '/progress');
+    const snap = await ref.get();
+    if (snap.exists) {
+      const d = snap.data();
+      state = {checks:Object.assign({}, state.checks, d.checks||{}), notes:Object.assign({}, state.notes, d.notes||{})};
+      try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e) {}
+    }
+    docRef = ref;
+    saveEl.textContent = 'Saved to your account.';
+    render();
+  } catch(e) {}
+})();
+
+function lessonStat(li){ const k = keysFor(li); const d = k.filter(x => state.checks[x]).length; return {d, t:k.length}; }
+
+function renderNav(cur){
+  navEl.innerHTML = '';
+  const home = document.createElement('li');
+  home.innerHTML = `<a href="#home" ${cur==='home'?'aria-current="page"':''}><span class="n">·</span><span>Welcome</span><span></span></a>`;
+  navEl.appendChild(home);
+  T.forEach((t,i) => {
+    const s = lessonStat(i), done = s.t && s.d === s.t, isCL = i === 9;
+    const li = document.createElement('li');
+    const st = (isCL || !s.t) ? '' : (done ? '<span class="st done" aria-label="Complete">✓</span>' : `<span class="st">${s.d}/${s.t}</span>`);
+    li.innerHTML = `<a href="#lesson-${i}" ${cur===i?'aria-current="page"':''}><span class="n">${isCL?'✓':String(i).padStart(2,'0')}</span><span>${t}</span>${st}</a>`;
+    navEl.appendChild(li);
+  });
+  const d = TOTAL_KEYS.filter(k => state.checks[k]).length;
+  const p = Math.round(100 * d / TOTAL_KEYS.length);
+  document.getElementById('pct').textContent = p + '%';
+  document.getElementById('bar').style.width = p + '%';
+}
+
+function nextLesson(){ for (let i=1;i<9;i++){ const s = lessonStat(i); if (s.d < s.t) return i; } return 9; }
+
+function renderHome(){
+  const started = TOTAL_KEYS.some(k => state.checks[k]);
+  const nl = nextLesson();
+  main.innerHTML = `
+  <section class="hero"><div class="in">
+    <img src="img/logo_cream.png" alt="Sanctus Church">
+    <div class="kicker">Production Team · Volunteer Onboarding</div>
+    <h1>ProPresenter<em>CG Operator Training</em></h1>
+    <p>A step-by-step course in running lyrics, media, macros and stage display at Sanctus Church.</p>
+    <a class="cta" href="#lesson-${started?nl:0}">${started?'Continue with Lesson '+String(nl).padStart(2,'0'):'Start the course'} →</a><a class="cta ghost" href="cg-simulator/index.html">Open the simulator</a>
+  </div></section>
+  <div class="wrap welcome">
+    <h2>Thank you for <em>saying yes.</em></h2>
+    <p>When the screens are right, nobody notices them. The lyrics land on time, the announcements look sharp, and the people in the room can just worship. That’s the gift you’ll give every Sunday.</p>
+    <p>This course walks you through ProPresenter the way we use it at Sanctus. Read a lesson, watch the matching training video, then tick off each practice item as you try it on the CG computer. You don’t need to memorise everything, and nobody expects you to be perfect on day one. We’ll be right there with you.</p>
+    <p>You can also practise on the <a href="cg-simulator/index.html"><b>CG Practice Simulator</b></a>, a pretend version of ProPresenter loaded with a demo Sunday playlist. Its practice missions follow the same eight lessons and tick off as you go, so you can try everything before you sit at the real CG computer.</p>
+    <div class="sig">Earl</div><div class="sigt">Video Coordinator · Sanctus Church</div>
+    <div class="cards">${T.map((t,i)=>{const s=lessonStat(i),isCL=i===9,done=s.t&&s.d===s.t;
+      const pill=isCL?'<span class="pill go">Use on Sunday</span>':done?'<span class="pill done">Complete</span>':s.d?`<span class="pill go">${s.d} of ${s.t} done</span>`:s.t?`<span class="pill">${s.t} practice items</span>`:'<span class="pill">Start here</span>';
+      return `<a class="card" href="#lesson-${i}"><span class="n">${isCL?'✓':String(i).padStart(2,'0')}</span><b>${t}</b>${pill}</a>`;}).join('')}</div>
+  </div>`;
+}
+
+function renderLesson(i){
+  const d = tpl[i].cloneNode(true);
+  d.querySelectorAll('ul.check li').forEach(it => {
+    const k = it.dataset.key, id = 'ck-' + k;
+    it.innerHTML = `<label class="ck" for="${id}"><input type="checkbox" id="${id}" data-key="${k}" ${state.checks[k]?'checked':''}><span>${it.innerHTML}</span></label>`;
+  });
+  const ta = d.querySelector('textarea.notes');
+  if (ta) { ta.id = 'notes-' + i; ta.value = state.notes['l'+i] || ''; }
+  const pr = d.querySelector('.practice');
+  if (pr) {
+    pr.querySelector('.lbl').insertAdjacentHTML('beforeend','<span class="count"></span>');
+    pr.querySelector('ul.check').insertAdjacentHTML('afterend','<div class="donebar" hidden>✓ Lesson complete. Nice work.</div>');
+    pr.insertAdjacentHTML('afterend', `<div class="simbox"><p>No CG computer handy? Try this lesson in the practice simulator. Open <b>Practice missions</b> and look for <b>Lesson ${i}</b>.</p><a href="cg-simulator/index.html">Open the simulator →</a></div>`);
+  }
+  if (i === 9) {
+    const first = d.querySelector('h3');
+    first.insertAdjacentHTML('beforebegin','<div class="donebar"><span id="clcount"></span><button class="reset" id="reset">Reset for next Sunday</button></div>');
+  }
+  const prev = i>0 ? `<a href="#lesson-${i-1}"><small>Previous</small><b>${T[i-1]}</b></a>` : `<a href="#home"><small>Back</small><b>Welcome</b></a>`;
+  const next = i<N-1 ? `<a class="next" href="#lesson-${i+1}"><small>Next</small><b>${T[i+1]}</b></a>` : '';
+  main.innerHTML = `<div class="wrap">${d.innerHTML}<div class="pager">${prev}${next}</div></div>`;
+  updateCounts(i);
+}
+
+function updateCounts(i){
+  const s = lessonStat(i);
+  const c = main.querySelector('.practice .count'); if (c) c.textContent = `${s.d} of ${s.t}`;
+  const db = main.querySelector('.practice .donebar'); if (db) db.hidden = !(s.t && s.d === s.t);
+  const cl = document.getElementById('clcount'); if (cl) cl.textContent = `${s.d} of ${s.t} checked`;
+}
+
+let current = 'home';
+function route(){
+  const m = location.hash.match(/^#lesson-(\d+)$/);
+  current = m && +m[1] < N ? +m[1] : 'home';
+  render(); window.scrollTo(0,0);
+  document.getElementById('side').classList.remove('open');
+  document.getElementById('menu').setAttribute('aria-expanded','false');
+}
+function render(){
+  const y = window.scrollY;
+  renderNav(current);
+  current === 'home' ? renderHome() : renderLesson(current);
+  window.scrollTo(0,y);
+}
+
+main.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('input[type=checkbox][data-key]')) {
+    if (t.checked) state.checks[t.dataset.key] = true; else delete state.checks[t.dataset.key];
+    persist(); renderNav(current); updateCounts(current);
+  }
+});
+main.addEventListener('input', e => {
+  if (e.target.matches('textarea.notes')) { state.notes['l'+current] = e.target.value; persist(); }
+});
+main.addEventListener('click', e => {
+  const z = e.target.closest('.zoom');
+  if (z) { document.getElementById('lbimg').src = z.dataset.src; document.getElementById('lb').classList.add('on'); return; }
+  if (e.target.id === 'reset') { keysFor(9).forEach(k => delete state.checks[k]); persist(); render(); }
+});
+const lb = document.getElementById('lb');
+lb.addEventListener('click', () => lb.classList.remove('on'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
+document.getElementById('menu').addEventListener('click', e => {
+  const s = document.getElementById('side'); const o = s.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o);
+});
+window.addEventListener('hashchange', route);
+route();
+})();
+</script>
 </body>
 </html>
