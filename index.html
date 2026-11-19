@@ -54,7 +54,6 @@ nav .st.done{width:20px;height:20px;border-radius:50%;background:var(--sage);col
 .simbox a:hover{background:#fff}
 .hero .cta.ghost{background:transparent;color:var(--mint);border:1px solid var(--mint);margin-left:10px}
 .hero .cta.ghost:hover{background:rgba(255,255,255,.1)}
-@media (max-width:900px){.side.open .simlink{display:block}.side .simlink{display:none;width:100%}}
 .side .foot{margin-top:auto;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--sage)}
 .menu{display:none}
 
@@ -153,27 +152,36 @@ ul.check li{padding:0}
 
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
-  .side{position:sticky;top:0;height:auto;z-index:20;padding:14px 18px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px}
-  .side .brand b{font-size:16px}
-  .menu{display:inline-flex;margin-left:auto;background:none;border:1px solid var(--sage);color:var(--mint);border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer}
-  .side .prog,.side nav,.simlink{display:block;text-decoration:none;color:var(--teal);background:var(--mint);border-radius:10px;padding:12px 14px;font-weight:600;font-size:13.5px}
-.simlink small{display:block;font-weight:400;font-size:11.5px;color:var(--bar);margin-top:2px}
-.simlink:hover{background:#fff}
-.simbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding:14px 16px;border-radius:10px;background:var(--teal);color:#fff}
-.simbox p{margin:0;flex:1;min-width:220px;font-size:14px;color:#e6efeb}
-.simbox b{color:#fff}
-.simbox a{background:var(--mint);color:var(--teal);text-decoration:none;font-weight:600;font-size:13px;border-radius:999px;padding:9px 16px;white-space:nowrap}
-.simbox a:hover{background:#fff}
-.hero .cta.ghost{background:transparent;color:var(--mint);border:1px solid var(--mint);margin-left:10px}
-.hero .cta.ghost:hover{background:rgba(255,255,255,.1)}
-@media (max-width:900px){.side.open .simlink{display:block}.side .simlink{display:none;width:100%}}
-.side .foot{display:none;width:100%}
-  .side.open .prog,.side.open nav{display:block}
+  .side{position:sticky;top:0;z-index:30;height:auto;overflow:visible;flex-direction:row;align-items:center;flex-wrap:nowrap;gap:10px;padding:10px 16px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  .side .brand img{width:28px}
+  .side .brand b{font-size:15px}
+  .side .brand small{display:none}
+  .side .prog,.side nav,.side .simlink,.side .foot{display:none}
+  .mprog{display:inline-flex;align-items:center;margin-left:auto;font-size:12px;font-weight:600;color:var(--teal);background:var(--mint);border-radius:999px;padding:4px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .menu{display:inline-flex;margin-left:0;background:transparent;border:1px solid var(--sage);color:#fff;border-radius:999px;padding:6px 14px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+  /* open: full-screen drawer */
+  .side.open{position:fixed;inset:0;height:100%;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:16px;padding:16px 18px 28px;overflow-y:auto;background:var(--teal);z-index:60;box-shadow:none}
+  .side.open .brand{padding-right:90px}
+  .side.open .mprog{display:none}
+  .side.open .menu{position:absolute;top:14px;right:18px}
+  .side.open .prog{display:block;background:rgba(255,255,255,.08)}
+  .side.open .prog .row{color:var(--sage)}
+  .side.open .prog .row b{color:#fff}
+  .side.open nav{display:block;background:transparent}
+  .side.open nav a{color:var(--mint);font-size:15px;padding:12px 10px}
+  .side.open nav a[aria-current="page"]{background:var(--mint);color:var(--teal)}
+  .side.open .simlink{display:block}
+  .side.open .foot{display:block;margin-top:8px}
+  body.menu-open{overflow:hidden}
   .wrap{padding:28px 18px 60px}
-  .hero .in{padding:44px 18px 40px}
+  .hero .in{padding:40px 18px 36px}
+  .hero img{width:76px;margin-bottom:28px}
+  .hero .cta.ghost{margin-left:0;margin-top:10px}
   .opener{padding:26px 22px}
   .pair{grid-template-columns:1fr}
+  .pager a{max-width:100%}
 }
+@media (min-width:901px){.mprog{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -181,6 +189,7 @@ ul.check li{padding:0}
 <div class="app">
   <aside class="side" id="side">
     <a class="brand" href="#home"><img src="img/mark_cream.png" alt=""><span><b>CG Operator Training</b><small>Sanctus Church</small></span></a>
+    <span class="mprog" id="mprog">0%</span>
     <button class="menu" id="menu" aria-expanded="false" aria-controls="side">Lessons</button>
     <div class="prog">
       <div class="row"><span>Your progress</span><b id="pct">0%</b></div>
@@ -262,6 +271,7 @@ function renderNav(cur){
   const p = Math.round(100 * d / TOTAL_KEYS.length);
   document.getElementById('pct').textContent = p + '%';
   document.getElementById('bar').style.width = p + '%';
+  document.getElementById('mprog').textContent = p + '% done';
 }
 
 function nextLesson(){ for (let i=1;i<9;i++){ const s = lessonStat(i); if (s.d < s.t) return i; } return 9; }
@@ -325,8 +335,7 @@ function route(){
   const m = location.hash.match(/^#lesson-(\d+)$/);
   current = m && +m[1] < N ? +m[1] : 'home';
   render(); window.scrollTo(0,0);
-  document.getElementById('side').classList.remove('open');
-  document.getElementById('menu').setAttribute('aria-expanded','false');
+  setMenu(false);
 }
 function render(){
   const y = window.scrollY;
@@ -353,9 +362,14 @@ main.addEventListener('click', e => {
 const lb = document.getElementById('lb');
 lb.addEventListener('click', () => lb.classList.remove('on'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
-document.getElementById('menu').addEventListener('click', e => {
-  const s = document.getElementById('side'); const o = s.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o);
-});
+function setMenu(o){
+  const s = document.getElementById('side'), m = document.getElementById('menu');
+  s.classList.toggle('open', o); m.setAttribute('aria-expanded', o); m.textContent = o ? 'Close' : 'Lessons';
+  document.body.classList.toggle('menu-open', o);
+}
+document.getElementById('menu').addEventListener('click', () => setMenu(!document.getElementById('side').classList.contains('open')));
+document.getElementById('side').addEventListener('click', e => { if (e.target.closest('nav a, .brand')) setMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 window.addEventListener('hashchange', route);
 route();
 })();
