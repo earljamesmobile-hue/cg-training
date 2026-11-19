@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CG Practice Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sim.css">
+</head>
+<body>
+<div class="app">
+  <header class="tb">
+    <div class="brand"><i>S</i><span>CG Practice Simulator<small>Sanctus Church · for ProPresenter training</small></span></div>
+    <a class="tbtn" id="backcourse" href="../index.html" hidden style="text-decoration:none"><b>←</b>Course</a>
+    <button class="tbtn" data-act="file"><b>☰</b>File</button>
+    <button class="tbtn" data-act="search"><b>⌕</b>Search</button>
+    <button class="tbtn on"><b>▶</b>Show</button>
+    <button class="tbtn" data-act="edit"><b>✎</b>Edit</button>
+    <button class="tbtn" data-act="reflow"><b>≡</b>Reflow</button>
+    <button class="tbtn" data-act="themes"><b>◐</b>Themes</button>
+    <button class="tbtn" data-act="stageeditor"><b>▭</b>Stage</button>
+    <span class="sp"></span>
+    <button class="tog on" data-act="tog-aud" title="Turn the audience output on or off"><i></i>Audience</button>
+    <button class="tog on" data-act="tog-stage" title="Turn the stage output on or off"><i></i>Stage</button>
+    <button class="tbtn" data-act="help"><b>?</b>Help</button>
+    <button class="tbtn" data-act="reset"><b>↺</b>Reset</button>
+    <button class="mbtn" id="mbtn" data-act="missions">Practice missions</button>
+  </header>
+  <div class="main">
+    <aside class="col">
+      <div class="sec" style="flex:0 0 auto;max-height:45%;overflow-y:auto" id="lists"></div>
+      <div class="sec" style="flex:1;border-top:1px solid var(--line)" id="items"></div>
+    </aside>
+    <section class="center">
+      <div class="phead" id="phead"></div>
+            <div class="grid" id="grid"></div>
+      <div class="sizebar"><span>Click a slide to go live · right-click for options · Shift-click to select several</span><span style="flex:1"></span><label for="thumbsize">Slide size</label><input type="range" id="thumbsize" min="130" max="320" value="190"></div>
+    </section>
+    <aside class="col">
+      <div class="outwrap">
+        <div class="outbar"><select id="prevsel" aria-label="Output preview"><option value="aud">AUD · Auditorium screens</option><option value="stage">Stage display</option></select><span class="sp"></span><span class="livedot" id="livedot">● LIVE</span></div>
+        <div class="frame" id="outframe" style="border-radius:6px">
+          <div class="audlayers layer">
+            <canvas id="cam" class="cam" width="640" height="360"></canvas><span class="camlbl">CAM 1 · IMAG</span>
+            <div class="layer" id="lay-media"></div>
+            <div class="layer" id="lay-text"></div>
+            <div class="layer" id="lay-props"></div>
+            <div class="layer" id="lay-msg"></div>
+            <div class="layer" id="lay-off" hidden style="background:#000;display:grid;place-items:center;color:#666;font-size:3cqw">Audience output is off</div>
+          </div>
+          <div class="stagelayer layer" hidden style="background:#000"></div>
+        </div>
+        <div class="clears">
+          <button class="all" data-act="clear" data-what="all" title="F1">Clear All</button>
+          <button data-act="clear" data-what="slide" title="F2">Slide</button>
+          <button data-act="clear" data-what="media" title="F3">Media</button>
+          <button data-act="clear" data-what="props">Props</button>
+          <button data-act="clear" data-what="messages">Msgs</button>
+        </div>
+      </div>
+      <div class="player" id="player"></div>
+      <div class="tabs" role="tablist">
+        <button data-tab="macros">Macros</button><button data-tab="timers">Timers</button><button data-tab="messages">Messages</button><button data-tab="props">Props</button><button data-tab="stage">Stage</button><button data-tab="media">Media</button>
+      </div>
+      <div class="tabbody" id="tabbody"></div>
+    </aside>
+  </div>
+</div>
+<div class="drawer" id="drawer" aria-label="Practice missions">
+  <div class="dh"><h2>Practice missions</h2><p>Work through these on the simulator. Each one ticks off on its own when you complete it.</p><div class="meter"><i style="width:0"></i></div><p id="mcount" style="margin-top:6px;font-size:11px"></p></div>
+  <div class="db"></div>
+  <div class="df"><button class="btn" data-act="help">How it works</button><span style="flex:1"></span><button class="btn" data-act="closemissions">Close</button></div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>if(/\/cg-simulator\//.test(location.pathname)) document.getElementById("backcourse").hidden=false;</script>
+</body>
+</html>
